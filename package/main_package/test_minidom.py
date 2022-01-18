@@ -61,19 +61,38 @@ def get_spectrum_dict(spectrum_list: List) -> Dict:
 
 
 # doesn't work
-def get_precursors(spectrum_dict):
-    precursor_dict = dict()
+def get_compression(spectrum_dict):
+    compression_dict = dict()
     for key in spectrum_dict:
-        precursor_dict[key] = spectrum_dict[key].getElementsByTagName('precursorList')
-    for prec in precursor_dict:
-        param = precursor_dict[prec].getElementsByTagName('cvParam')
-        for elem in param:
-            if elem.getAttribute('name') == 'selected ion m/z':
-                prec_ion_mz = elem.getAttribute('value')
-    return prec_ion_mz
+        params = spectrum_dict[key].getElementsByTagName('binaryDataArray')
+        data = list()
+        for array in params:
+            p = array.getElementsByTagName('cvParam')
+            for e in p:
+                data.append(e.getAttribute('name'))
+        compression_dict[key] = data
+    for key in compression_dict:
+        compression_dict[key] = set(compression_dict[key])
+        compression_dict[key] = list(compression_dict[key])
+        #for elem in compression_dict[key]:
 
 
-def get_spectrum_values(spectrum_dict: Dict) -> Dict[str, Dict]:
+        # for elem in param:
+            # if elem.getAttribute('name') == 'selected ion m/z':
+                # prec_ion_mz = elem.getAttribute('value')
+    comp = dict()
+    for key in compression_dict:
+        comp[key] = dict()
+        for elem in compression_dict[key]:
+            if 'compression' in elem:
+                comp[key]['compression'] = elem
+            elif 'float' in elem:
+                comp[key]['data_type'] = elem
+    print(comp[0])
+    return comp
+
+
+def get_spectrum_values(spectrum_dict: Dict, compression_dict: Dict[str, str]) -> Dict:
     """Takes a spectrum dictionary and returns a dictionary of the spectrum index and the m/z ratio and the intensity
     values in binary format.
 
@@ -81,6 +100,9 @@ def get_spectrum_values(spectrum_dict: Dict) -> Dict[str, Dict]:
     ----------
     spectrum_dict: Dict
         Spectrum dictionary. Contains spectrum ids as keys and the corresponding spectrum object from the mzMl file.
+
+    compression_dict: Dict[str, str]
+        Dictionary containing information regarding the encoding of the binary array.
 
     Returns
     -------
@@ -92,16 +114,20 @@ def get_spectrum_values(spectrum_dict: Dict) -> Dict[str, Dict]:
     for key in spectrum_dict:
         if spectrum_dict[key].getAttribute('defaultArrayLength') != '0':
             mz_array, intensity_array = spectrum_dict[key].getElementsByTagName('binary')
-            print(get_precursors(spectrum_dict))
-            vals[key] = {'mz': mz_array, 'intensity': intensity_array}  # , 'precursor_mz': prec_value}
+            compression = compression_dict[key]['compression']
+            data_type = compression_dict[key]['data_type']
+            vals[key] = {'mz': mz_array, 'intensity': intensity_array, 'compression': compression,
+                         'data_type': data_type}
         else:
-            vals[key] = {'mz': None, 'intensity': None}  # , 'precursor_mz': None}
+            vals[key] = {'mz': None, 'intensity': None, 'compression': None, 'data_type': None}
     for key in vals:
         if vals[key]['mz'] is not None and vals[key]['intensity'] is not None:
             bin_dict[key] = {'mz': vals[key]['mz'].firstChild.nodeValue,
-                             'intensity': vals[key]['intensity'].firstChild.nodeValue}
+                             'intensity': vals[key]['intensity'].firstChild.nodeValue,
+                             'compression': vals[key]['compression'],
+                             'data_type': vals[key]['data_type']}
         else:
-            bin_dict[key] = {'mz': None, 'intensity': None}
+            bin_dict[key] = {'mz': None, 'intensity': None, 'compression': None, 'data_type': None}
     return bin_dict
 
 
@@ -151,7 +177,8 @@ def analyse_spectrum(in_path: str, out_path: str) -> Dict:
     p_file = parse_file(in_path)
     s_list = get_spectrum_list(p_file)
     spectrum_dictionary = get_spectrum_dict(s_list)
-    vals = get_spectrum_values(spectrum_dictionary)
+    comp_dict = get_compression(spectrum_dictionary)
+    vals = get_spectrum_values(spectrum_dictionary, comp_dict)
     data = decode_decompress(vals)
     write_mgf_file(data, out_path)
     # print(data)
