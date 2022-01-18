@@ -3,7 +3,7 @@ import pymzml
 
 # Example on how to use pymzml
 # Read file and get spectrum count
-run = pymzml.run.Reader('package/tests/data/sample_ms_file1.mzML')
+run = pymzml.run.Reader('../tests/data/sample_ms_file1.mzML')
 print(run.get_spectrum_count())
 
 

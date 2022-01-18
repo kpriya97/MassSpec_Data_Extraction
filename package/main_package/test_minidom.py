@@ -110,7 +110,7 @@ def analyse_spectrum(path: str) -> Dict:
     return vals
 
 
-values = analyse_spectrum('package/tests/data/sample_ms_file1.mzML')
+values = analyse_spectrum('../tests/data/sample_ms_file1.mzML')
 print(values[0]['intensity'])
 
 
