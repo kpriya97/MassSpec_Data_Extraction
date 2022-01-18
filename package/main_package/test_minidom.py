@@ -16,6 +16,7 @@ def parse_file(path: str):
     parsed file: xml.dom object
         parsed mzml file
     """
+    assert path.endswith('.mzML') or path.endswith('.mzXML'), 'Please parse an .mzML or .mzXML file.'
     parsed_file = md.parse(path)
     return parsed_file
 
@@ -59,6 +60,19 @@ def get_spectrum_dict(spectrum_list: List) -> Dict:
     return spectrum_dict
 
 
+# doesn't work
+def get_precursors(spectrum_dict):
+    precursor_dict = dict()
+    for key in spectrum_dict:
+        precursor_dict[key] = spectrum_dict[key].getElementsByTagName('precursorList')
+    for prec in precursor_dict:
+        param = precursor_dict[prec].getElementsByTagName('cvParam')
+        for elem in param:
+            if elem.getAttribute('name') == 'selected ion m/z':
+                prec_ion_mz = elem.getAttribute('value')
+    return prec_ion_mz
+
+
 def get_spectrum_values(spectrum_dict: Dict) -> Dict[str, Dict]:
     """Takes a spectrum dictionary and returns a dictionary of the spectrum index and the m/z ratio and the intensity
     values in binary format.
@@ -78,9 +92,10 @@ def get_spectrum_values(spectrum_dict: Dict) -> Dict[str, Dict]:
     for key in spectrum_dict:
         if spectrum_dict[key].getAttribute('defaultArrayLength') != '0':
             mz_array, intensity_array = spectrum_dict[key].getElementsByTagName('binary')
-            vals[key] = {'mz': mz_array, 'intensity': intensity_array}
+            print(get_precursors(spectrum_dict))
+            vals[key] = {'mz': mz_array, 'intensity': intensity_array}  # , 'precursor_mz': prec_value}
         else:
-            vals[key] = {'mz': None, 'intensity': None}
+            vals[key] = {'mz': None, 'intensity': None}  # , 'precursor_mz': None}
     for key in vals:
         if vals[key]['mz'] is not None and vals[key]['intensity'] is not None:
             bin_dict[key] = {'mz': vals[key]['mz'].firstChild.nodeValue,
@@ -117,26 +132,45 @@ def decode_decompress(vals: dict) -> Dict:
     return spectrum_data
 
 
-def analyse_spectrum(path: str) -> Dict:
+def analyse_spectrum(in_path: str, out_path: str) -> Dict:
     """
     Wrapper function for the parsing of an mzML file and the extraction of the m/z and intensity values.
     Parameters
     ----------
-    path: str
+    in_path: str
         path to mzML file
+
+    out_path: str
+        path to MGF output file
 
     Returns
     -------
     vals: Dict
         dictionary with intensity and m/z values
     """
-    p_file = parse_file(path)
+    p_file = parse_file(in_path)
     s_list = get_spectrum_list(p_file)
     spectrum_dictionary = get_spectrum_dict(s_list)
     vals = get_spectrum_values(spectrum_dictionary)
     data = decode_decompress(vals)
+    write_mgf_file(data, out_path)
     # print(data)
     return data
 
 
-analyse_spectrum("../tests/data/sample_ms_file1.mzML")
+def write_mgf_file(spectrum_data: Dict, output_file: str) -> None:
+    assert output_file.endswith('.mgf'), 'The output file extension must be .mgf.'
+    with open(output_file, 'w') as file:
+        for key in spectrum_data:
+            file.write('BEGIN IONS\n')
+            file.write('TITLE=Spectrum ' + str(key) + '\n')
+            file.write('PEPMASS=' + str(100) + '\n')  # get mass from precursor ion (intensity is optional)
+            file.write('PRECURSOR=' + str(200) + '\n')  # get precursor m/z
+            if spectrum_data[key]['mz'] is not None:
+                for i in range(len(spectrum_data[key]['mz'])):
+                    file.write(str(spectrum_data[key]['mz'][i]) + ' ' + str(spectrum_data[key]['intensity'][i]) + '\n')
+            file.write('END IONS\n\n')
+    return
+
+
+analyse_spectrum("../tests/data/sample_ms_file1.mzML", 'test_file.mgf')
