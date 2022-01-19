@@ -74,12 +74,6 @@ def get_compression(spectrum_dict):
     for key in compression_dict:
         compression_dict[key] = set(compression_dict[key])
         compression_dict[key] = list(compression_dict[key])
-        #for elem in compression_dict[key]:
-
-
-        # for elem in param:
-            # if elem.getAttribute('name') == 'selected ion m/z':
-                # prec_ion_mz = elem.getAttribute('value')
     comp = dict()
     for key in compression_dict:
         comp[key] = dict()
