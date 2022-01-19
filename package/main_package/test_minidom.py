@@ -60,8 +60,22 @@ def get_spectrum_dict(spectrum_list: List) -> Dict:
     return spectrum_dict
 
 
-# doesn't work
-def get_compression(spectrum_dict):
+def get_compression(spectrum_dict: Dict) -> Dict[int, Dict]:
+    """Gathers information about the encoding of the binary arrays in the parsed input file.
+
+    Parameters
+    ----------
+    spectrum_dict: Dict
+        Spectrum dictionary. Contains spectrum ids and the corresponding spectrum object
+
+    Returns
+    -------
+    dict_final: Dict[int, Dict]
+        Dictionary containing the encoding information. Keys are the spectrum ids and the values are as followed:
+        {'mz': {'data_type': data_type, 'compression': compression}, 'intensity': {'data_type': data_type,
+        'compression': compression}}.
+
+    """
     compression_dict = dict()
     for key in spectrum_dict:
         params = spectrum_dict[key].getElementsByTagName('binaryDataArray')
@@ -71,19 +85,35 @@ def get_compression(spectrum_dict):
             for e in p:
                 data.append(e.getAttribute('name'))
         compression_dict[key] = data
+    print(compression_dict[0])
+    compression_list = list()
     for key in compression_dict:
-        compression_dict[key] = set(compression_dict[key])
-        compression_dict[key] = list(compression_dict[key])
-    comp = dict()
+        mz = compression_dict[key].index('m/z array')
+        intensity = compression_dict[key].index('intensity array')
+        if mz < intensity:
+            mz_comp = compression_dict[key][:mz]
+            int_comp = compression_dict[key][mz + 1:intensity]
+        else:
+            int_comp = compression_dict[key][:intensity]
+            mz_comp = compression_dict[key][intensity + 1:mz]
+        compression_list.append([mz_comp, int_comp])
+    dict_final = dict()
     for key in compression_dict:
-        comp[key] = dict()
-        for elem in compression_dict[key]:
-            if 'compression' in elem:
-                comp[key]['compression'] = elem
-            elif 'float' in elem:
-                comp[key]['data_type'] = elem
-    print(comp[0])
-    return comp
+        dict_final[key] = {'mz': dict(), 'intensity': dict()}
+        value_mz = compression_list[key][0]
+        value_int = compression_list[key][1]
+        for val in value_mz:
+            if 'float' in val or 'int' in val or 'bit' in val:
+                dict_final[key]['mz']['data_type'] = val
+            elif 'compression' in val:
+                dict_final[key]['mz']['compression'] = val
+        for val in value_int:
+            if 'float' in val or 'int' in val or 'bit' in val:
+                dict_final[key]['intensity']['data_type'] = val
+            elif 'compression' in val:
+                dict_final[key]['intensity']['compression'] = val
+    print(dict_final[0])
+    return dict_final
 
 
 def get_spectrum_values(spectrum_dict: Dict, compression_dict: Dict[str, str]) -> Dict:
@@ -95,7 +125,7 @@ def get_spectrum_values(spectrum_dict: Dict, compression_dict: Dict[str, str]) -
     spectrum_dict: Dict
         Spectrum dictionary. Contains spectrum ids as keys and the corresponding spectrum object from the mzMl file.
 
-    compression_dict: Dict[str, str]
+    compression_dict: Dict[int, Dict]
         Dictionary containing information regarding the encoding of the binary array.
 
     Returns
@@ -108,12 +138,16 @@ def get_spectrum_values(spectrum_dict: Dict, compression_dict: Dict[str, str]) -
     for key in spectrum_dict:
         if spectrum_dict[key].getAttribute('defaultArrayLength') != '0':
             mz_array, intensity_array = spectrum_dict[key].getElementsByTagName('binary')
-            compression = compression_dict[key]['compression']
-            data_type = compression_dict[key]['data_type']
+            compression_mz = compression_dict[key]['mz']['compression']
+            compression_int = compression_dict[key]['intensity']['compression']
+            compression = {'mz': compression_mz, 'intensity': compression_int}
+            data_type_mz = compression_dict[key]['mz']['data_type']
+            data_type_int = compression_dict[key]['intensity']['data_type']
+            data_type = {'mz': data_type_mz, 'intensity': data_type_int}
             vals[key] = {'mz': mz_array, 'intensity': intensity_array, 'compression': compression,
                          'data_type': data_type}
         else:
-            vals[key] = {'mz': None, 'intensity': None, 'compression': None, 'data_type': None}
+            vals[key] = {'mz': None, 'intensity': None, 'compression': None, 'data_type': None, 'compression': None}
     for key in vals:
         if vals[key]['mz'] is not None and vals[key]['intensity'] is not None:
             bin_dict[key] = {'mz': vals[key]['mz'].firstChild.nodeValue,
@@ -142,10 +176,14 @@ def decode_decompress(vals: dict) -> Dict:
     for key in vals:
         encoded_mz_data, encoded_int_data = vals[key]['mz'], vals[key]['intensity']
         if encoded_mz_data is not None or encoded_int_data is not None:
-            decoded_mz_data, decoded_int_data = base64.standard_b64decode(encoded_mz_data), base64.standard_b64decode(encoded_int_data)  # # decodes the string
-            decompressed_mz_data, decompressed_int_data = zlib.decompress(decoded_mz_data), zlib.decompress(decoded_int_data)  # decompresses the data
-            mz_data = struct.unpack('<%sf' % (len(decompressed_mz_data) // 4), decompressed_mz_data)  # unpacks 32-bit m/z values as floats
-            int_data = struct.unpack('<%sf' % (len(decompressed_int_data) // 4), decompressed_int_data)  # unpacks 32-bit intensity values as floats
+            decoded_mz_data, decoded_int_data = base64.standard_b64decode(encoded_mz_data), base64.standard_b64decode(
+                encoded_int_data)  # # decodes the string
+            decompressed_mz_data, decompressed_int_data = zlib.decompress(decoded_mz_data), zlib.decompress(
+                decoded_int_data)  # decompresses the data
+            mz_data = struct.unpack('<%sf' % (len(decompressed_mz_data) // 4),
+                                    decompressed_mz_data)  # unpacks 32-bit m/z values as floats
+            int_data = struct.unpack('<%sf' % (len(decompressed_int_data) // 4),
+                                     decompressed_int_data)  # unpacks 32-bit intensity values as floats
             spectrum_data[key] = {'mz': mz_data, 'intensity': int_data}
         else:
             spectrum_data[key] = {'mz': None, 'intensity': None}
