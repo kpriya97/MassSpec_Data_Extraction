@@ -1,5 +1,6 @@
 from pyopenms import *
-
+import json
+import requests
 # mzml_file = r"C:\Users\Shubhi Ambast\group_3\package\tests\data\sample_ms_file1.mzML"
 # exp = MSExperiment()
 # MzMLFile().load(mzml_file, exp)
@@ -63,14 +64,25 @@ for peptide_id in peptide_ids:
     print(" - Peptide hit monoisotopic m/z:", mz)
     print(" - Peptide ppm error:", abs(mz - peptide_id.getMZ())/mz *10**6 )
     print(" - Peptide hit score:", hit.getScore())
-#
-# for peptide_id in peptide_ids:
-#   for hit in peptide_id.getHits():
-#     print(" - Peptide hit sequence:", hit.getSequence())
-#     print(" - Peptide hit score:", hit.getScore())
-#
+
+for peptide_id in peptide_ids:
+  for hit in peptide_id.getHits():
+    print(" - Peptide hit sequence:", hit.getSequence())
+    print(" - Peptide hit score:", hit.getScore())
+
 for protein_id in protein_ids:
   for hit in protein_id.getHits():
     print("Protein hit accession:", hit.getAccession())
     print("Protein hit sequence:", hit.getSequence())
     print("Protein hit score:", hit.getScore())
+
+
+#to check if peptide atlas API works on single peptide derived from above results
+
+peptides = ['DDSPDLPK','LVTDLTK']
+for peptide in peptides:
+  api_query = f"http://www.peptideatlas.org/api/promast/v1/map?peptide={peptide}"
+  r = requests.get(api_query, headers={"Accept": "application/json"})
+  print(r.status_code)
+  print(r.text)
+  print(r.json())
