@@ -1,6 +1,9 @@
 from xml.dom import minidom as md
 from typing import List, Dict
-import base64, zlib, struct
+import base64
+import zlib
+import struct
+import logging
 
 
 def parse_file(path: str):
