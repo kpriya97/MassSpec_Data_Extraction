@@ -40,18 +40,21 @@ class Reader:
         else:
             raise ValueError('Please parse an input file of either .mzML or .mzXML format.')
 
-    @staticmethod
-    def get_spectrum_list(parsed_file) -> List:
-        spectrum_list = parsed_file.getElementsByTagName('spectrum')
+    def get_spectrum_list(self, parsed_file) -> List:
+        if self.format == 'mzml':
+            spectrum_list = parsed_file.getElementsByTagName('spectrum')
+        elif self.format == 'mzxml':
+            pass
         return spectrum_list
 
-    @staticmethod
-    def get_spectrum_dict(spectrum_list: List) -> Dict:
+    def get_spectrum_dict(self, spectrum_list: List) -> Dict:
         spectrum_dict = dict()
         for spectrum in spectrum_list:
-            ids = int(spectrum.getAttribute("index"))
-            spectrum_dict[ids] = spectrum
-        # print(spectrum_dict.keys())
+            if self.format == 'mzml':
+                ids = int(spectrum.getAttribute("index"))
+                spectrum_dict[ids] = spectrum
+            elif self.format == 'mzxml':
+                pass
         return spectrum_dict
 
     def get_compression(self, spectrum_dict: Dict):
@@ -72,14 +75,16 @@ class Reader:
         """
         compression_dict = dict()
         for key in spectrum_dict:
-            params = spectrum_dict[key].getElementsByTagName('binaryDataArray')
-            data = list()
-            for array in params:
-                p = array.getElementsByTagName('cvParam')
-                for e in p:
-                    data.append(e.getAttribute('name'))
-            compression_dict[key] = data
-        print(compression_dict[0])
+            if self.format == 'mzml':
+                params = spectrum_dict[key].getElementsByTagName('binaryDataArray')
+                data = list()
+                for array in params:
+                    p = array.getElementsByTagName('cvParam')
+                    for e in p:
+                        data.append(e.getAttribute('name'))
+                compression_dict[key] = data
+            elif self.format == 'mzxml':
+                pass
         compression_list = list()
         for key in compression_dict:
             mz = compression_dict[key].index('m/z array')
@@ -106,7 +111,6 @@ class Reader:
                     dict_final[key]['intensity']['data_type'] = val
                 elif 'compression' in val:
                     dict_final[key]['intensity']['compression'] = val
-        print(dict_final[0])
         self.compression = dict_final
         return
 
