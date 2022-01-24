@@ -13,13 +13,12 @@ logger = logging.getLogger(__name__)
 
 class Reader:
     def __init__(self, path):
-        self.path = path
+        self.path = path # path to input file
         self.format = None  # can be 'mzml' or 'mzxml', set in check_extension
-        self.compression = None
-        self.binary_values = None
-        self.spectrum_data = None
-        self.values = None
-        # self.parsed_file = None
+        self.compression = None # contains compression dict for each spectrum
+        self.binary_values = None # contains binary values (m/z and intensity arrays) for each spectrum id
+        self.spectrum_data = None # decoded intensity and m/z array values
+        self.values = None # base peak m/z, base peak intensity, lowest and highest obvserved m/z and total ion current
 
     def check_extension(self) -> bool:
         """Checks if the extension of the parsed file is either .mzML or .mzXML.
@@ -294,6 +293,6 @@ class Reader:
 
 if __name__ == '__main__':
     #test = Reader("../tests/data/test_files_1/BSA1.mzML")
-    test = Reader('C:/Users/laras/7MIX_STD_110802_1.mzXML')
+    test = Reader('../tests/data/7MIX_STD_110802_1.mzXML')
     values = test.analyse_spectrum()
     print(values)
