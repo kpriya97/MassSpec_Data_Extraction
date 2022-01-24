@@ -1,10 +1,13 @@
+import xml.dom.minidom
 from xml.dom import minidom as md
 from typing import List, Dict
 import base64
 import zlib
 import struct
 import logging
-import pandas as pd
+
+
+logger = logging.getLogger(__name__)
 
 
 class Reader:
@@ -19,8 +22,10 @@ class Reader:
     def check_extension(self) -> bool:
         """Checks if the extension of the parsed file is either .mzML or .mzXML.
 
-        :return:
-            bool
+        Returns
+        -------
+        bool: True if allowed extension else False
+
         """
         if self.path.endswith('.mzML'):
             self.format = 'mzml'
@@ -32,22 +37,59 @@ class Reader:
             # logger: wrong file format
             return False
 
-    def parse_file(self):
+    def parse_file(self) -> xml.dom.minidom.Document:
+        """Parses the input file and creates minidom object.
+
+        Returns
+        -------
+        parsed_file: xml.dom.minidom.Document
+            xml.dom.minidom.Document from the parsed input file
+
+        Raises
+        -------
+        ValueError: if the input file has non-allowed extension
+        """
         if self.check_extension():
             parsed_file = md.parse(self.path)
-            # self.parsed_file = parsed_file
+            print(parsed_file)
             return parsed_file
         else:
             raise ValueError('Please parse an input file of either .mzML or .mzXML format.')
 
-    def get_spectrum_list(self, parsed_file) -> List:
+    def get_spectrum_list(self, parsed_file: xml.dom.minidom.Document) -> List[xml.dom.minidom.Element]:
+        """Creates and returns list with spectra from the xml.dom.minidom.Document of the input file.
+
+        Parameters
+        ----------
+        parsed_file: xml.dom.minidom.Document
+            xml.dom.minidom.Document of the parsed input file
+
+        Returns
+        -------
+        spectrum_list: List[xml.dom.minidom.Element]
+            list containing the spectra as xml.dom.minidom.Element
+        """
         if self.format == 'mzml':
             spectrum_list = parsed_file.getElementsByTagName('spectrum')
         elif self.format == 'mzxml':
             pass
         return spectrum_list
 
-    def get_spectrum_dict(self, spectrum_list: List) -> Dict:
+    def get_spectrum_dict(self, spectrum_list: List[xml.dom.minidom.Element]) -> Dict[int, xml.dom.minidom.Element]:
+        """Creates and returns dictionary with spectrum ids as key and xml.dom.minidom.Element as values from
+        spectrum list.
+
+        Parameters
+        ----------
+        spectrum_list: List[xml.dom.minidom.Element]
+            list containing the spectra as xml.dom.minidom.Element
+
+        Returns
+        -------
+        spectrum_dict: Dict[int, xml.dom.minidom.Element]
+            dictionary with spectrum ids as key and xml.dom.minidom.Element as values
+
+        """
         spectrum_dict = dict()
         for spectrum in spectrum_list:
             if self.format == 'mzml':
@@ -62,15 +104,11 @@ class Reader:
 
         Parameters
         ----------
-        spectrum_dict: Dict
-            Spectrum dictionary. Contains spectrum ids and the corresponding spectrum object
+        spectrum_dict: Dict[int, xml.dom.minidom.Element]
+            dictionary with spectrum ids as key and xml.dom.minidom.Element as values
 
         Returns
         -------
-        dict_final: Dict[int, Dict]
-            Dictionary containing the encoding information. Keys are the spectrum ids and the values are as followed:
-            {'mz': {'data_type': data_type, 'compression': compression}, 'intensity': {'data_type': data_type,
-            'compression': compression}}.
 
         """
         compression_dict = dict()
@@ -115,22 +153,17 @@ class Reader:
         self.compression = dict_final
         return
 
-    def get_binary_spectrum_values(self, spectrum_dict: Dict):
-        """Takes a spectrum dictionary and returns a dictionary of the spectrum index and the m/z ratio and the
-        intensity values in binary format.
+    def get_binary_spectrum_values(self, spectrum_dict: Dict[int, xml.dom.minidom.Element]):
+        """
 
         Parameters
         ----------
-        spectrum_dict: Dict
-            Spectrum dictionary. Contains spectrum ids as keys and the corresponding spectrum object from the mzMl file.
-
-        compression_dict: Dict[int, Dict]
-            Dictionary containing information regarding the encoding of the binary array.
+        spectrum_dict: Dict[int, xml.dom.minidom.Element]
+            dictionary with spectrum ids as key and xml.dom.minidom.Element as values
 
         Returns
         -------
-        vals: Dict[str, Dict]
-            Dictionary of spectrum ids as keys and their mz values and intensity values in binary format as values.
+
         """
         vals = dict()
         bin_dict = dict()
@@ -150,15 +183,13 @@ class Reader:
         return
 
     def decode_decompress(self):
-        """
-        Takes the raw spectrum values and returns a dictionary of decoded and uncompressed m/z and intensity values.
+        """Takes the raw spectrum values and creates a dictionary of decoded and uncompressed m/z and intensity values.
         Parameters
         ----------
 
         Returns
         -------
-        spectrum_data: Dict
-            dictionary of decoded and uncompressed m/z and intensity values
+
         """
         spectrum_data = dict()
         for key in self.binary_values:
@@ -193,8 +224,7 @@ class Reader:
         return
 
     def analyse_spectrum(self):
-        """
-        Wrapper function for the parsing of an mzML file and the extraction of the m/z and intensity values.
+        """Wrapper function for the parsing of an mzML file and the extraction of the m/z and intensity values.
         Parameters
         ----------
 
@@ -215,4 +245,3 @@ class Reader:
 if __name__ == '__main__':
     test = Reader("../tests/data/test_files_1/BSA1.mzML")
     data_test = test.analyse_spectrum()
-    print(data_test)
