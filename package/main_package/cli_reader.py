@@ -2,7 +2,7 @@ import click
 from reader import Reader
 
 
-@click.group
+@click.group()
 def main():
     """Entry method"""
     pass
