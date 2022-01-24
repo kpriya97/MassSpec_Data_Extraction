@@ -14,6 +14,10 @@ def main():
 
 @main.command()
 @click.argument('path')
-def get_spectrum_values(path: str):
+@click.option('-v', '--verbose', default=False, is_flag=True, help="When used, will print the paths to STDOUT.")
+def get_spectrum_values(path: str, verbose: bool = False):
     reader = Reader(path=path)
     data = reader.analyse_spectrum()
+    if verbose:
+        click.echo(data)
+
