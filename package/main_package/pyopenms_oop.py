@@ -100,8 +100,8 @@ class PeptideSearch:
                     logger.info('Hit peptide sequences are stored in a list')
         return peptide_list
 
-# mzml_path = r'C:\Users\Shubhi Ambast\plab2_project\group_3\package\tests\data\test_files_1\BSA1.mzML'
-# fasta_path = r'C:\Users\Shubhi Ambast\plab2_project\group_3\package\tests\data\test_files_1\BSA.fasta'
+# mzml_path = r'A:\Semester_3\group_3\package\tests\data\test_files_1\BSA1.mzML'
+# fasta_path = r'A:\Semester_3\group_3\package\tests\data\test_files_1\BSA.fasta'
 # test = PeptideSearch(fasta_path, mzml_path)
 # peptide_ids = test.peptide_search()[1]
 # peptide_info = test.get_peptide_identification_values(peptide_ids=peptide_ids)

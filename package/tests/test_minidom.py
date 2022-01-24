@@ -235,4 +235,4 @@ def write_mgf_file(spectrum_data: Dict, output_file: str) -> None:
     return
 
 
-analyse_spectrum("../tests/data/sample_ms_file1.mzML", 'test_file.mgf')
+analyse_spectrum("data/sample_ms_file1.mzML", '../tests/test_file.mgf')
