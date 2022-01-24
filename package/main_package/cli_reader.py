@@ -1,9 +1,5 @@
 import click
-from minidom_oop import Reader
-import logging
-
-
-logger = logging.getLogger(__name__)
+from reader import Reader
 
 
 @click.group

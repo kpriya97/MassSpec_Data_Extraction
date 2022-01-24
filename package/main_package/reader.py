@@ -6,6 +6,7 @@ import zlib
 import struct
 import logging
 import pandas as pd
+import argparse
 
 
 logger = logging.getLogger(__name__)
@@ -18,14 +19,14 @@ class Reader:
         self.compression = None # contains compression dict for each spectrum
         self.binary_values = None # contains binary values (m/z and intensity arrays) for each spectrum id
         self.spectrum_data = None # decoded intensity and m/z array values
-        self.values = None # base peak m/z, base peak intensity, lowest and highest obvserved m/z and total ion current
+        self.values = None # base peak m/z, base peak intensity, lowest and highest observed m/z and total ion current
 
     def check_extension(self) -> bool:
         """Checks if the extension of the parsed file is either .mzML or .mzXML.
 
         Returns
         -------
-        bool: True if allowed extension else False
+        bool: True if extension is allowed
 
         """
         if self.path.endswith('.mzML'):
@@ -35,7 +36,6 @@ class Reader:
             self.format = 'mzxml'
             return True
         else:
-            # logger: wrong file format
             return False
 
     def parse_file(self) -> xml.dom.minidom.Document:
@@ -52,9 +52,11 @@ class Reader:
         """
         if self.check_extension():
             parsed_file = md.parse(self.path)
+            logger.info(f'Successfully parsed file: {self.path}')
             return parsed_file
         else:
-            raise ValueError('Please parse an input file of either .mzML or .mzXML format.')
+            logger.warning('The parsed file format is not valid, mzML or mzXML file is required.')
+            raise argparse.ArgumentTypeError('Please parse an input file of either .mzML or .mzXML format.')
 
     def get_spectrum_list(self, parsed_file: xml.dom.minidom.Document) -> List[xml.dom.minidom.Element]:
         """Creates and returns list with spectra from the xml.dom.minidom.Document of the input .mzML file.
@@ -101,7 +103,7 @@ class Reader:
                 spectrum_dict[ids] = spectrum
         return spectrum_dict
 
-    def get_compression(self, spectrum_dict: Dict):
+    def get_compression(self, spectrum_dict: Dict[int, xml.dom.minidom.Element]):
         """Gathers information about the encoding of the binary arrays in the parsed input file.
 
         Parameters
@@ -113,18 +115,18 @@ class Reader:
         -------
 
         """
+        if self.format == 'mzxml':
+            logger.warning('Extracting compression types is only available for .mzML files.')
+            raise argparse.ArgumentTypeError('Extracting compression types is only available for .mzML files.')
         compression_dict = dict()
         for key in spectrum_dict:
-            if self.format == 'mzml':
-                params = spectrum_dict[key].getElementsByTagName('binaryDataArray')
-                data = list()
-                for array in params:
-                    p = array.getElementsByTagName('cvParam')
-                    for e in p:
-                        data.append(e.getAttribute('name'))
-                compression_dict[key] = data
-            elif self.format == 'mzxml':
-                pass
+            params = spectrum_dict[key].getElementsByTagName('binaryDataArray')
+            data = list()
+            for array in params:
+                p = array.getElementsByTagName('cvParam')
+                for e in p:
+                    data.append(e.getAttribute('name'))
+            compression_dict[key] = data
         compression_list = list()
         for key in compression_dict:
             mz = compression_dict[key].index('m/z array')
@@ -156,7 +158,7 @@ class Reader:
         return
 
     def get_binary_spectrum_values(self, spectrum_dict: Dict[int, xml.dom.minidom.Element]):
-        """
+        """Extracts binary data arrays for each spectrum.
 
         Parameters
         ----------
@@ -167,6 +169,9 @@ class Reader:
         -------
 
         """
+        if self.format == 'mzxml':
+            logger.warning('Binary data extraction is only available for .mzML files.')
+            raise argparse.ArgumentTypeError('Binary data extraction is only available for .mzML files.')
         vals = dict()
         for key in spectrum_dict:
             if spectrum_dict[key].getAttribute('defaultArrayLength') != '0':
@@ -180,6 +185,7 @@ class Reader:
 
     def decode_decompress(self):
         """Takes the raw spectrum values and creates a dictionary of decoded and uncompressed m/z and intensity values.
+
         Parameters
         ----------
 
@@ -187,6 +193,9 @@ class Reader:
         -------
 
         """
+        if self.format == 'mzxml':
+            logger.warning('Decoding binary arrays is only available for .mzML files.')
+            raise argparse.ArgumentTypeError('Decoding binary arrays is only available for .mzML files.')
         spectrum_data = dict()
         for key in self.binary_values:
             encoded_mz_data, encoded_int_data = self.binary_values[key]['mz'], self.binary_values[key]['intensity']
@@ -262,26 +271,27 @@ class Reader:
                     value_dict[key] = {'base_peak_m/z': bpmz, 'base_peak_intensity': bpi, 'total_ion_current': tic,
                                        'lowest_observed_m/z': lomz, 'highest_observed_m/z': homz}
         self.values = value_dict
+        logger.info('Successfully gathered values for the spectra.')
         return value_dict
 
-
-
-
-    def analyse_spectrum(self):
+    def analyse_spectrum(self) -> pd.DataFrame:
         """Wrapper function for the parsing of an mzML file and the extraction of the m/z and intensity values.
         Parameters
         ----------
 
         Returns
         -------
-
+        df_values: pd.DataFrame
+            dataframe containing spectrum ids and base peak m/z, base peak intensity, total ion current,
+            lowest and highest observed m/z.
         """
         parsed_file = self.parse_file()
         s_list = self.get_spectrum_list(parsed_file)
         spectrum_dictionary = self.get_spectrum_dict(s_list)
-        #self.get_compression(spectrum_dictionary)
-        #self.get_binary_spectrum_values(spectrum_dictionary)
-        #self.decode_decompress()
+        if self.format == 'mzml':
+            self.get_compression(spectrum_dictionary)
+            self.get_binary_spectrum_values(spectrum_dictionary)
+            self.decode_decompress()
         values_spectrum = self.get_values(spectrum_dictionary)
         df_values = pd.DataFrame.from_dict(values_spectrum, orient='index', columns=['base_peak_m/z',
                                                                                      'base_peak_intensity',
