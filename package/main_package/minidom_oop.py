@@ -5,6 +5,7 @@ import base64
 import zlib
 import struct
 import logging
+import pandas as pd
 
 
 logger = logging.getLogger(__name__)
@@ -17,6 +18,7 @@ class Reader:
         self.compression = None
         self.binary_values = None
         self.spectrum_data = None
+        self.values = None
         # self.parsed_file = None
 
     def check_extension(self) -> bool:
@@ -51,13 +53,12 @@ class Reader:
         """
         if self.check_extension():
             parsed_file = md.parse(self.path)
-            print(parsed_file)
             return parsed_file
         else:
             raise ValueError('Please parse an input file of either .mzML or .mzXML format.')
 
     def get_spectrum_list(self, parsed_file: xml.dom.minidom.Document) -> List[xml.dom.minidom.Element]:
-        """Creates and returns list with spectra from the xml.dom.minidom.Document of the input file.
+        """Creates and returns list with spectra from the xml.dom.minidom.Document of the input .mzML file.
 
         Parameters
         ----------
@@ -72,7 +73,7 @@ class Reader:
         if self.format == 'mzml':
             spectrum_list = parsed_file.getElementsByTagName('spectrum')
         elif self.format == 'mzxml':
-            pass
+            spectrum_list = parsed_file.getElementsByTagName('scan')
         return spectrum_list
 
     def get_spectrum_dict(self, spectrum_list: List[xml.dom.minidom.Element]) -> Dict[int, xml.dom.minidom.Element]:
@@ -91,12 +92,14 @@ class Reader:
 
         """
         spectrum_dict = dict()
-        for spectrum in spectrum_list:
-            if self.format == 'mzml':
+        if self.format == 'mzml':
+            for spectrum in spectrum_list:
                 ids = int(spectrum.getAttribute("index"))
                 spectrum_dict[ids] = spectrum
-            elif self.format == 'mzxml':
-                pass
+        elif self.format == 'mzxml':
+            for spectrum in spectrum_list:
+                ids = int(spectrum.getAttribute("num"))
+                spectrum_dict[ids] = spectrum
         return spectrum_dict
 
     def get_compression(self, spectrum_dict: Dict):
@@ -166,20 +169,14 @@ class Reader:
 
         """
         vals = dict()
-        bin_dict = dict()
         for key in spectrum_dict:
             if spectrum_dict[key].getAttribute('defaultArrayLength') != '0':
                 mz_array, intensity_array = spectrum_dict[key].getElementsByTagName('binary')
-                vals[key] = {'mz': mz_array, 'intensity': intensity_array}
+                vals[key] = {'mz': mz_array.firstChild.nodeValue,
+                             'intensity': intensity_array.firstChild.nodeValue}
             else:
                 vals[key] = {'mz': None, 'intensity': None}
-        for key in vals:
-            if vals[key]['mz'] is not None and vals[key]['intensity'] is not None:
-                bin_dict[key] = {'mz': vals[key]['mz'].firstChild.nodeValue,
-                                 'intensity': vals[key]['intensity'].firstChild.nodeValue}
-            else:
-                bin_dict[key] = {'mz': None, 'intensity': None}
-        self.binary_values = bin_dict
+        self.binary_values = vals
         return
 
     def decode_decompress(self):
@@ -223,6 +220,54 @@ class Reader:
         self.spectrum_data = spectrum_data
         return
 
+    def get_values(self, spectrum_dict: Dict[int, xml.dom.minidom.Element]) -> Dict[int, Dict]:
+        """Creates dictionary with spectrum ids and base peak m/z, base peak intensity, total ion current,
+        lowest and highest observed m/z.
+
+        Parameters
+        ----------
+        spectrum_dict: Dict[int, xml.dom.minidom.Element]
+            dictionary with spectrum ids as key and xml.dom.minidom.Element as values
+
+        Returns
+        -------
+        value_dict: Dict[int, Dict]
+            dictionary containing spectrum ids and the spectrum values
+        """
+        value_dict = dict()
+        if self.format == 'mzml':
+            for key in spectrum_dict:
+                if spectrum_dict[key].getAttribute('defaultArrayLength') != '0':
+                    vals = spectrum_dict[key].getElementsByTagName('userParam')
+                    bpmz = vals[0].getAttribute('value')
+                    bpi = vals[1].getAttribute('value')
+                    tic = vals[2].getAttribute('value')
+                    lomz = vals[3].getAttribute('value')
+                    homz = vals[4].getAttribute('value')
+                    value_dict[key] = {'base_peak_m/z': bpmz,
+                                       'base_peak_intensity': bpi,
+                                       'total_ion_current': tic,
+                                       'lowest_observed_m/z': lomz,
+                                       'highest_observed_m/z': homz}
+                else:
+                    value_dict[key] = {'base_peak_m/z': None, 'base_peak_intensity': None, 'total_ion_current': None,
+                                       'lowest_observed_m/z': None, 'highest_observed_m/z': None}
+        elif self.format == 'mzxml':
+            for key in spectrum_dict:
+                if spectrum_dict[key].getAttribute('peaksCount') >= '0':
+                    bpmz = spectrum_dict[key].getAttribute('basePeakMz')
+                    bpi = spectrum_dict[key].getAttribute('basePeakIntensity')
+                    tic = spectrum_dict[key].getAttribute('totIonCurrent')
+                    lomz = spectrum_dict[key].getAttribute('lowMz')
+                    homz = spectrum_dict[key].getAttribute('highMz')
+                    value_dict[key] = {'base_peak_m/z': bpmz, 'base_peak_intensity': bpi, 'total_ion_current': tic,
+                                       'lowest_observed_m/z': lomz, 'highest_observed_m/z': homz}
+        self.values = value_dict
+        return value_dict
+
+
+
+
     def analyse_spectrum(self):
         """Wrapper function for the parsing of an mzML file and the extraction of the m/z and intensity values.
         Parameters
@@ -235,13 +280,20 @@ class Reader:
         parsed_file = self.parse_file()
         s_list = self.get_spectrum_list(parsed_file)
         spectrum_dictionary = self.get_spectrum_dict(s_list)
-        self.get_compression(spectrum_dictionary)
-        self.get_binary_spectrum_values(spectrum_dictionary)
-        self.decode_decompress()
-        data = self.spectrum_data
-        return data
+        #self.get_compression(spectrum_dictionary)
+        #self.get_binary_spectrum_values(spectrum_dictionary)
+        #self.decode_decompress()
+        values_spectrum = self.get_values(spectrum_dictionary)
+        df_values = pd.DataFrame.from_dict(values_spectrum, orient='index', columns=['base_peak_m/z',
+                                                                                     'base_peak_intensity',
+                                                                                     'total_ion_current',
+                                                                                     'lowest_observed_m/z',
+                                                                                     'highest_observed_m/z'])
+        return df_values
 
 
 if __name__ == '__main__':
-    test = Reader("../tests/data/test_files_1/BSA1.mzML")
-    data_test = test.analyse_spectrum()
+    #test = Reader("../tests/data/test_files_1/BSA1.mzML")
+    test = Reader('C:/Users/laras/7MIX_STD_110802_1.mzXML')
+    values = test.analyse_spectrum()
+    print(values)
