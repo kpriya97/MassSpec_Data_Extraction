@@ -89,12 +89,13 @@ class Reader:
         for key in compression_dict:
             mz = compression_dict[key].index('m/z array')
             intensity = compression_dict[key].index('intensity array')
+            length = len(compression_dict[key])
             if mz < intensity:
-                mz_comp = compression_dict[key][:mz]
-                int_comp = compression_dict[key][mz + 1:intensity]
+                mz_comp = compression_dict[key][:int(length/2)]
+                int_comp = compression_dict[key][int(length/2):]
             else:
-                int_comp = compression_dict[key][:intensity]
-                mz_comp = compression_dict[key][intensity + 1:mz]
+                int_comp = compression_dict[key][:int(length/2)]
+                mz_comp = compression_dict[key][int(length/2):]
             compression_list.append([mz_comp, int_comp])
         dict_final = dict()
         for key in compression_dict:
@@ -102,12 +103,12 @@ class Reader:
             value_mz = compression_list[key][0]
             value_int = compression_list[key][1]
             for val in value_mz:
-                if 'float' in val or 'int' in val or 'bit' in val:
+                if 'float' in val or 'bit' in val:
                     dict_final[key]['mz']['data_type'] = val
                 elif 'compression' in val:
                     dict_final[key]['mz']['compression'] = val
             for val in value_int:
-                if 'float' in val or 'int' in val or 'bit' in val:
+                if 'float' in val or 'bit' in val:
                     dict_final[key]['intensity']['data_type'] = val
                 elif 'compression' in val:
                     dict_final[key]['intensity']['compression'] = val
@@ -163,15 +164,28 @@ class Reader:
         for key in self.binary_values:
             encoded_mz_data, encoded_int_data = self.binary_values[key]['mz'], self.binary_values[key]['intensity']
             if encoded_mz_data is not None or encoded_int_data is not None:
-                decoded_mz_data, decoded_int_data = base64.standard_b64decode(
-                    encoded_mz_data), base64.standard_b64decode(
-                    encoded_int_data)  # # decodes the string
-                decompressed_mz_data, decompressed_int_data = zlib.decompress(decoded_mz_data), zlib.decompress(
-                    decoded_int_data)  # decompresses the data
-                mz_data = struct.unpack('<%sf' % (len(decompressed_mz_data) // 4),
-                                        decompressed_mz_data)  # unpacks 32-bit m/z values as floats
-                int_data = struct.unpack('<%sf' % (len(decompressed_int_data) // 4),
-                                         decompressed_int_data)  # unpacks 32-bit intensity values as floats
+                decoded_mz_data = base64.standard_b64decode(encoded_mz_data)
+                decoded_int_data = base64.standard_b64decode(encoded_int_data)  # # decodes the string
+                if self.compression[key]['mz']['compression'] == 'zlib compression':
+                    decompressed_mz_data = zlib.decompress(decoded_mz_data)
+                else:
+                    decompressed_mz_data = decoded_mz_data
+                if self.compression[key]['intensity']['compression'] == 'zlib compression':
+                    decompressed_int_data = zlib.decompress(decoded_int_data)  # decompresses the data
+                else:
+                    decompressed_int_data = decoded_int_data
+                if self.compression[key]['mz']['data_type'] == '32-bit float':
+                    mz_data = struct.unpack('<%sf' % (len(decompressed_mz_data) // 4),
+                                            decompressed_mz_data)  # unpacks 32-bit m/z values as floats
+                elif self.compression[key]['mz']['data_type'] == '64-bit float':
+                    mz_data = struct.unpack('<%sd' % (len(decompressed_mz_data) // 8),
+                                            decompressed_mz_data)
+                if self.compression[key]['intensity']['data_type'] == '32-bit float':
+                    int_data = struct.unpack('<%sf' % (len(decompressed_int_data) // 4),
+                                             decompressed_int_data)  # unpacks 32-bit intensity values as floats
+                elif self.compression[key]['intensity']['data_type'] == '64-bit float':
+                    int_data = struct.unpack('<%sd' % (len(decompressed_int_data) // 8),
+                                             decompressed_int_data)
                 spectrum_data[key] = {'mz': mz_data, 'intensity': int_data}
             else:
                 spectrum_data[key] = {'mz': None, 'intensity': None}
@@ -194,6 +208,11 @@ class Reader:
         self.get_compression(spectrum_dictionary)
         self.get_binary_spectrum_values(spectrum_dictionary)
         self.decode_decompress()
-        data = pd.DataFrame.from_dict(self.spectrum_data, orient='index', columns=['mz', 'intensity'])
-        # print(data)
+        data = self.spectrum_data
         return data
+
+
+if __name__ == '__main__':
+    test = Reader("../tests/data/test_files_1/BSA1.mzML")
+    data_test = test.analyse_spectrum()
+    print(data_test)
