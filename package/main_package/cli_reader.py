@@ -17,3 +17,7 @@ def get_spectrum_values(path: str, verbose: bool = False):
     if verbose:
         click.echo(data)
 
+
+if __name__ == '__main__':
+    main()
+
