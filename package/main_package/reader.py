@@ -252,11 +252,11 @@ class Reader:
                     tic = vals[2].getAttribute('value')
                     lomz = vals[3].getAttribute('value')
                     homz = vals[4].getAttribute('value')
-                    value_dict[key] = {'base_peak_m/z': bpmz,
-                                       'base_peak_intensity': bpi,
-                                       'total_ion_current': tic,
-                                       'lowest_observed_m/z': lomz,
-                                       'highest_observed_m/z': homz}
+                    value_dict[key] = {'base_peak_m/z': float(bpmz),
+                                       'base_peak_intensity': float(bpi),
+                                       'total_ion_current': float(tic),
+                                       'lowest_observed_m/z': float(lomz),
+                                       'highest_observed_m/z': float(homz)}
                 else:
                     value_dict[key] = {'base_peak_m/z': None, 'base_peak_intensity': None, 'total_ion_current': None,
                                        'lowest_observed_m/z': None, 'highest_observed_m/z': None}
@@ -268,8 +268,9 @@ class Reader:
                     tic = spectrum_dict[key].getAttribute('totIonCurrent')
                     lomz = spectrum_dict[key].getAttribute('lowMz')
                     homz = spectrum_dict[key].getAttribute('highMz')
-                    value_dict[key] = {'base_peak_m/z': bpmz, 'base_peak_intensity': bpi, 'total_ion_current': tic,
-                                       'lowest_observed_m/z': lomz, 'highest_observed_m/z': homz}
+                    value_dict[key] = {'base_peak_m/z': float(bpmz), 'base_peak_intensity': float(bpi),
+                                       'total_ion_current': float(tic), 'lowest_observed_m/z': float(lomz),
+                                       'highest_observed_m/z': float(homz)}
         self.values = value_dict
         logger.info('Successfully gathered values for the spectra.')
         return value_dict
