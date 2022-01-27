@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
+
 class Reader:
     def __init__(self, path):
         self.path = path # path to input file
