@@ -1,5 +1,10 @@
 import click
 from reader import Reader
+import logging
+
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
 
 
 @click.group()
