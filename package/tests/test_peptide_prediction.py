@@ -1,4 +1,4 @@
-from pyopenms_oop import PeptideSearch
+from peptide_prediction import PeptideSearch
 import pytest
 import pandas as pd
 
