@@ -75,6 +75,8 @@ class Reader:
             spectrum_list = parsed_file.getElementsByTagName('spectrum')
         elif self.format == 'mzxml':
             spectrum_list = parsed_file.getElementsByTagName('scan')
+        if spectrum_list == list():
+            logger.warning('The parsed file does not contain any spectrum data')
         return spectrum_list
 
     def get_spectrum_dict(self, spectrum_list: List[xml.dom.minidom.Element]) -> Dict[int, xml.dom.minidom.Element]:
@@ -252,11 +254,11 @@ class Reader:
                     tic = vals[2].getAttribute('value')
                     lomz = vals[3].getAttribute('value')
                     homz = vals[4].getAttribute('value')
-                    value_dict[key] = {'base_peak_m/z': float(bpmz),
-                                       'base_peak_intensity': float(bpi),
-                                       'total_ion_current': float(tic),
-                                       'lowest_observed_m/z': float(lomz),
-                                       'highest_observed_m/z': float(homz)}
+                    value_dict[key] = {'base_peak_m/z': round(float(bpmz), 2),
+                                       'base_peak_intensity': round(float(bpi), 2),
+                                       'total_ion_current': round(float(tic), 2),
+                                       'lowest_observed_m/z': round(float(lomz), 2),
+                                       'highest_observed_m/z': round(float(homz), 2)}
                 else:
                     value_dict[key] = {'base_peak_m/z': None, 'base_peak_intensity': None, 'total_ion_current': None,
                                        'lowest_observed_m/z': None, 'highest_observed_m/z': None}
@@ -268,11 +270,13 @@ class Reader:
                     tic = spectrum_dict[key].getAttribute('totIonCurrent')
                     lomz = spectrum_dict[key].getAttribute('lowMz')
                     homz = spectrum_dict[key].getAttribute('highMz')
-                    value_dict[key] = {'base_peak_m/z': float(bpmz), 'base_peak_intensity': float(bpi),
-                                       'total_ion_current': float(tic), 'lowest_observed_m/z': float(lomz),
-                                       'highest_observed_m/z': float(homz)}
+                    value_dict[key] = {'base_peak_m/z': round(float(bpmz), 2),
+                                       'base_peak_intensity': round(float(bpi), 2),
+                                       'total_ion_current': round(float(tic), 2),
+                                       'lowest_observed_m/z': round(float(lomz), 2),
+                                       'highest_observed_m/z': round(float(homz), 2)}
         self.values = value_dict
-        logger.info('Successfully gathered values for the spectra.')
+        logger.info('Successfully gathered spectrum values.')
         return value_dict
 
     def analyse_spectrum(self) -> pd.DataFrame:
