@@ -6,27 +6,25 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
-
 @click.group()
 def main():
     """Entry method."""
     pass
 
-
-# task 2 cli printing dictionary of peptide properties and list of peptide hit sequences
 @main.command()
 @click.argument('fasta_path')
 @click.argument('mzml_path')
-def info(fasta_path: str, mzml_path: str):
-    """Generates peptide info dictionary and list of peptide hit sequences"""
+@click.option('-v','--verbose',default=False,is_flag = True,help='when used will print to STODUT')
 
+def peptide_info(fasta_path: str, mzml_path: str,verbose: bool = False):
+
+    """Generates dataframe consisting of peptide properties and list of peptide hit seqeunces"""
     search = PeptideSearch(fasta_path, mzml_path)
-    peptide_ids = search.peptide_search()[1]
-    peptide_info = search.get_peptide_identification_values(peptide_ids=peptide_ids)
-    click.echo(peptide_info)
-    peptide_list = search.get_peptidesequence_list(peptide_ids=peptide_ids)
-    click.echo('Hit peptide sequences after comparing experimental and theoretical MS data')
-    print(peptide_list)
+    info = search.peptide_wrapper()[0]
+    peptide_list =search.peptide_wrapper()[1]
+    if verbose:
+        click.echo(info)
+        click.echo(peptide_list)
 
 
 if __name__ == "__main__":
