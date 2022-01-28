@@ -13,15 +13,14 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 
-
 class Reader:
     def __init__(self, path):
-        self.path = path # path to input file
+        self.path = path  # path to input file
         self.format = None  # can be 'mzml' or 'mzxml', set in check_extension
-        self.compression = None # contains compression dict for each spectrum
-        self.binary_values = None # contains binary values (m/z and intensity arrays) for each spectrum id
-        self.spectrum_data = None # decoded intensity and m/z array values
-        self.values = None # base peak m/z, base peak intensity, lowest and highest observed m/z and total ion current
+        self.compression = None  # contains compression dict for each spectrum
+        self.binary_values = None  # contains binary values (m/z and intensity arrays) for each spectrum id
+        self.spectrum_data = None  # decoded intensity and m/z array values
+        self.values = None  # base peak m/z, base peak intensity, lowest and highest observed m/z and total ion current
 
     def check_extension(self) -> bool:
         """Checks if the extension of the parsed file is either .mzML or .mzXML.
@@ -248,7 +247,7 @@ class Reader:
         """
         value_dict = dict()
         if self.format == 'mzml':
-            for key in spectrum_dict:
+            for index, key in enumerate(spectrum_dict):
                 if spectrum_dict[key].getAttribute('defaultArrayLength') != '0':
                     vals = spectrum_dict[key].getElementsByTagName('userParam')
                     bpmz = vals[0].getAttribute('value')
@@ -256,7 +255,7 @@ class Reader:
                     tic = vals[2].getAttribute('value')
                     lomz = vals[3].getAttribute('value')
                     homz = vals[4].getAttribute('value')
-                    value_dict[key] = {'base_peak_m/z': round(float(bpmz), 2),
+                    value_dict[key] = {'spectra_id': int(index), 'base_peak_m/z': round(float(bpmz), 2),
                                        'base_peak_intensity': round(float(bpi), 2),
                                        'total_ion_current': round(float(tic), 2),
                                        'lowest_observed_m/z': round(float(lomz), 2),
@@ -265,14 +264,14 @@ class Reader:
                     value_dict[key] = {'base_peak_m/z': None, 'base_peak_intensity': None, 'total_ion_current': None,
                                        'lowest_observed_m/z': None, 'highest_observed_m/z': None}
         elif self.format == 'mzxml':
-            for key in spectrum_dict:
+            for index, key in enumerate(spectrum_dict):
                 if spectrum_dict[key].getAttribute('peaksCount') >= '0':
                     bpmz = spectrum_dict[key].getAttribute('basePeakMz')
                     bpi = spectrum_dict[key].getAttribute('basePeakIntensity')
                     tic = spectrum_dict[key].getAttribute('totIonCurrent')
                     lomz = spectrum_dict[key].getAttribute('lowMz')
                     homz = spectrum_dict[key].getAttribute('highMz')
-                    value_dict[key] = {'base_peak_m/z': round(float(bpmz), 2),
+                    value_dict[key] = {'spectra_id': int(index), 'base_peak_m/z': round(float(bpmz), 2),
                                        'base_peak_intensity': round(float(bpi), 2),
                                        'total_ion_current': round(float(tic), 2),
                                        'lowest_observed_m/z': round(float(lomz), 2),
@@ -300,16 +299,10 @@ class Reader:
             self.get_binary_spectrum_values(spectrum_dictionary)
             self.decode_decompress()
         values_spectrum = self.get_values(spectrum_dictionary)
-        df_values = pd.DataFrame.from_dict(values_spectrum, orient='index', columns=['base_peak_m/z',
+        df_values = pd.DataFrame.from_dict(values_spectrum, orient='index', columns=['spectra_id',
+                                                                                     'base_peak_m/z',
                                                                                      'base_peak_intensity',
                                                                                      'total_ion_current',
                                                                                      'lowest_observed_m/z',
                                                                                      'highest_observed_m/z'])
         return df_values
-
-
-if __name__ == '__main__':
-    #test = Reader("../tests/data/test_files_1/BSA1.mzML")
-    test = Reader('../tests/data/7MIX_STD_110802_1.mzXML')
-    values = test.analyse_spectrum()
-    print(values)
