@@ -8,7 +8,7 @@ import json
 import pandas as pd
 from collections import defaultdict
 
-from startup import DATA_DIR
+from protein_spectra_package.startup import DATA_DIR
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -49,7 +49,8 @@ class ProteinSearch:
             chunks = filtered_pep_list[i:i + 15]
             self.sel_peptides.append(chunks)
 
-    def get_api_query(self, list_peps: list) -> str:
+    @staticmethod
+    def get_api_query(list_peps: list) -> str:
         """Converts the list of peptides to The Proteins API query format
         Parameters
         ----------
@@ -156,7 +157,6 @@ class ProteinSearch:
         else:
             response_df = None
 
-
         # half exists, half API
         if response_df is not None and exists_df is not None:
             self.ans_df = pd.concat([exists_df, response_df],  axis=0, ignore_index=True)
@@ -175,15 +175,3 @@ class ProteinSearch:
             self.ans_df = exists_df
         else:
             logger.error("No response received")
-
-
-
-# # Test
-# pep_l = ['DDSPDLPK', 'YIC(Carbamidomethyl)DNQDTISSK', 'C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR',
-#          'LC(Carbamidomethyl)VLHEK', "DLGEEHFK", 'LC(Carbamidomethyl)VLHEK', 'LVTDLTK', 'DLGEEHFK', 'AEFVEVTK',
-#          'EAC(Carbamidomethyl)FAVEGPK', 'EAC(Carbamidomethyl)FAVEGPK', 'GAC(Carbamidomethyl)LLPK', 'YLYEIAR',
-#          'LVVSTQTALA', 'YLYEIAR']
-
-# search = ProteinSearch(pep_l)
-# search.get_proteins()
-# print(search.ans_df)
