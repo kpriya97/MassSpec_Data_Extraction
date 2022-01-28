@@ -109,3 +109,15 @@ class PeptideSearch:
         peptide_list = self.get_sequence(peptide_ids=peptide_ids)
         return peptide_df, peptide_list
 
+<<<<<<< HEAD
+=======
+
+# if __name__ == '__main__':
+#
+#     mzml_path = r'C:\Users\Shubhi Ambast\plab2_project\group_3\package\tests\data\test_files_1\BSA1.mzML'
+#     fasta_path = r'C:\Users\Shubhi Ambast\plab2_project\group_3\package\tests\data\test_files_1\BSA.fasta'
+#     test = PeptideSearch(fasta_path, mzml_path)
+#     peptides = test.peptide_wrapper()
+#     print(peptides[0])
+#     print(peptides[1])
+>>>>>>> 99f5a317ddea638fb7e1d8261c858ddfdf524b1a

@@ -11,7 +11,6 @@ PROJECT_DIR = home_dir.joinpath(".plab2_group3_project")
 LOG_DIR = PROJECT_DIR.joinpath("logs")
 DATA_DIR = PROJECT_DIR.joinpath("data")
 
-
 os.makedirs(LOG_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
 
