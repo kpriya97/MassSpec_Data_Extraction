@@ -30,20 +30,11 @@ def get_spectrum_values(path: str, verbose: bool = False):
 @main.command()
 @click.argument('fasta_path')
 @click.argument('mzml_path')
-<<<<<<< HEAD
-@click.option('-v', '--verbose', default=False, is_flag=True, help="When used, will print peptide hits to STDOUT.")
-def peptide_info(fasta_path: str, mzml_path: str, verbose: bool = False):
-=======
 @click.option('-v','--verbose',default=False,is_flag = True,help='when used will print to STDOUT')
 def peptide_info(fasta_path: str, mzml_path: str,verbose: bool = False):
->>>>>>> 99f5a317ddea638fb7e1d8261c858ddfdf524b1a
     """Generates dataframe consisting of peptide properties and list of peptide hit seqeunces"""
     search = PeptideSearch(fasta_path=fasta_path, mzml_path=mzml_path)
     info = search.peptide_wrapper()[0]
-<<<<<<< HEAD
-=======
-    peptide_list = search.peptide_wrapper()[1]
->>>>>>> 99f5a317ddea638fb7e1d8261c858ddfdf524b1a
     if verbose:
         click.echo(info)
 
