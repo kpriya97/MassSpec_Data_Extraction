@@ -108,11 +108,11 @@ class PeptideSearch:
         return peptide_df, peptide_list
 
 
-if __name__ == '__main__':
-
-    mzml_path = r'C:\Users\Shubhi Ambast\plab2_project\group_3\package\tests\data\test_files_1\BSA1.mzML'
-    fasta_path = r'C:\Users\Shubhi Ambast\plab2_project\group_3\package\tests\data\test_files_1\BSA.fasta'
-    test = PeptideSearch(fasta_path, mzml_path)
-    peptides = test.peptide_wrapper()
-    print(peptides[0])
-    print(peptides[1])
+# if __name__ == '__main__':
+#
+#     mzml_path = r'C:\Users\Shubhi Ambast\plab2_project\group_3\package\tests\data\test_files_1\BSA1.mzML'
+#     fasta_path = r'C:\Users\Shubhi Ambast\plab2_project\group_3\package\tests\data\test_files_1\BSA.fasta'
+#     test = PeptideSearch(fasta_path, mzml_path)
+#     peptides = test.peptide_wrapper()
+#     print(peptides[0])
+#     print(peptides[1])

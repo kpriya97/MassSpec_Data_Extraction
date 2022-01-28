@@ -8,7 +8,7 @@ import json
 import pandas as pd
 from collections import defaultdict
 
-from package.main_package.startup import DATA_DIR
+from startup import DATA_DIR
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -106,8 +106,8 @@ class ProteinSearch:
             for data in ind['features'][0]["evidences"]:
                 source.append(data["source"]["name"])
 
-            ans_dict[l + 1]["Data Source"] = "".join(source)
-            ans_dict[l + 1]["Peptide Position"] = f"{ind['features'][0]['begin']} - {ind['features'][0]['end']}"
+            ans_dict[l + 1]["Data Source"] = ",".join(source)
+            ans_dict[l + 1]["Peptide Position"] = f"{ind['features'][0]['begin']} to {ind['features'][0]['end']}"
 
             ans_dict[l + 1]["Sequence"] = ind["sequence"]
 
@@ -128,9 +128,11 @@ class ProteinSearch:
             pass
 
     def get_proteins(self):
+        """ Wrapper function to call relevant methods.
+        Only calls API if the data was not available from previous API queries.
+        """
         self.file_handle()
         filtered = self.filter_peptides()
-        already_exists_data = []
 
         pep_list_dir = os.path.join(DATA_DIR, "proteins", "protein_data.csv")
 
@@ -154,6 +156,7 @@ class ProteinSearch:
         else:
             response_df = None
 
+
         # half exists, half API
         if response_df is not None and exists_df is not None:
             self.ans_df = pd.concat([exists_df, response_df],  axis=0, ignore_index=True)
@@ -176,13 +179,11 @@ class ProteinSearch:
 
 
 # # Test
-# pep_l = ['DDSPDLPK']
-#
-#          # 'YIC(Carbamidomethyl)DNQDTISSK', 'C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR',
-#          # 'LC(Carbamidomethyl)VLHEK', "DLGEEHFK", 'LC(Carbamidomethyl)VLHEK', 'LVTDLTK', 'DLGEEHFK', 'AEFVEVTK',
-#          # 'EAC(Carbamidomethyl)FAVEGPK', 'EAC(Carbamidomethyl)FAVEGPK', 'GAC(Carbamidomethyl)LLPK', 'YLYEIAR',
-#          # 'LVVSTQTALA', 'YLYEIAR']
-#
+# pep_l = ['DDSPDLPK', 'YIC(Carbamidomethyl)DNQDTISSK', 'C(Carbamidomethyl)C(Carbamidomethyl)TESLVNR',
+#          'LC(Carbamidomethyl)VLHEK', "DLGEEHFK", 'LC(Carbamidomethyl)VLHEK', 'LVTDLTK', 'DLGEEHFK', 'AEFVEVTK',
+#          'EAC(Carbamidomethyl)FAVEGPK', 'EAC(Carbamidomethyl)FAVEGPK', 'GAC(Carbamidomethyl)LLPK', 'YLYEIAR',
+#          'LVVSTQTALA', 'YLYEIAR']
+
 # search = ProteinSearch(pep_l)
 # search.get_proteins()
 # print(search.ans_df)
