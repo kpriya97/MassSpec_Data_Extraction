@@ -2,7 +2,7 @@ from pyopenms import *
 from typing import Dict, List
 from pyopenms import *
 import pandas as pd
-
+import numpy as np
 import logging
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,8 @@ class PeptideSearch:
             logger.info('mzml file and fasta file exists')
             return protein_ids, peptide_ids
 
-    def get_peptide_identification_values(self, peptide_ids) -> Dict:
+    @staticmethod
+    def get_peptide_identification_values(peptide_ids) -> Dict:
         """ Gets peptide data corresponding to a single identified spectrum or feature.
         Each peptide hit stores the information of a specific peptide-to-spectrum match
         (e.g., the score and the peptide sequence)
@@ -64,17 +65,19 @@ class PeptideSearch:
         if peptide_ids is None:
             logger.error('SimpleSearchEngineAlgorithm did not identify any peptides')
         else:
-            for peptide_id in peptide_ids:
-                peptide_info['Peptide ID m/z'] = [float(round(peptide_id.getMZ(), 2))]
-                peptide_info['Peptide ID rt'] = [float(round(peptide_id.getRT(), 2))]
+            for index, peptide_id in enumerate(peptide_ids):
+                peptide_subdict = dict()
+                peptide_subdict['Peptide ID m/z'] = float(round(peptide_id.getMZ(), 2))
+                peptide_subdict['Peptide ID rt'] = float(round(peptide_id.getRT(), 2))
                 for hit in peptide_id.getHits():
-                    peptide_info['Peptide hit sequence'] = [str(hit.getSequence())]
-                    peptide_info['Peptide hit score'] = [float(round(hit.getScore(), 2))]
-                    # print(peptide_info)
+                    peptide_subdict['Peptide hit sequence'] = str(hit.getSequence())
+                    peptide_subdict['Peptide hit score'] = float(round(hit.getScore(), 2))
+                peptide_info[index] = peptide_subdict
         logger.info('Algorithm returned peptide properties stored in a dictionary')
         return peptide_info
 
-    def get_sequence(self, peptide_ids) -> List:
+    @staticmethod
+    def get_sequence(peptide_ids) -> List:
         """ Stores the hit protein sequences in a list after comparing experimental and theoretical MS data.
 
         Parameters
@@ -105,7 +108,11 @@ class PeptideSearch:
         """
         peptide_ids = self.peptide_search()[1]
         peptide_info = self.get_peptide_identification_values(peptide_ids=peptide_ids)
-        peptide_df = pd.DataFrame.from_dict(peptide_info)
+        peptide_df = pd.DataFrame.from_dict(peptide_info, orient='index', columns=['Peptide ID m/z',
+                                                                                   'Peptide ID rt',
+                                                                                   'Peptide hit sequence',
+                                                                                   'Peptide hit score'])
+
+        peptide_df.insert(0, 'Hit_id', np.arange(len(peptide_df)))
         peptide_list = self.get_sequence(peptide_ids=peptide_ids)
         return peptide_df, peptide_list
-
