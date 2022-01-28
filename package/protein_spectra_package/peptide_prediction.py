@@ -1,6 +1,6 @@
 from pyopenms import *
 from typing import Dict, List
-from pyopenms.pyopenms_7 import SimpleSearchEngineAlgorithm
+from pyopenms import *
 import pandas as pd
 
 import logging
@@ -95,24 +95,17 @@ class PeptideSearch:
                     logger.info('Hit peptide sequences are stored in a list')
         return peptide_list
 
-
     def peptide_wrapper(self):
-        '''
-        Wraaper function to create a dataframe with peptide values
-        :return:
-        '''
+        """
+        Wrapper function to create a dataframe with peptide values
+        Returns
+        ----------
+        peptide_df: dataframe
+            Dataframe of peptide hits
+        """
         peptide_ids = self.peptide_search()[1]
         peptide_info = self.get_peptide_identification_values(peptide_ids=peptide_ids)
         peptide_df = pd.DataFrame.from_dict(peptide_info)
         peptide_list = self.get_sequence(peptide_ids=peptide_ids)
         return peptide_df, peptide_list
 
-
-if __name__ == '__main__':
-
-    mzml_path = r'C:\Users\Shubhi Ambast\plab2_project\group_3\package\tests\data\test_files_1\BSA1.mzML'
-    fasta_path = r'C:\Users\Shubhi Ambast\plab2_project\group_3\package\tests\data\test_files_1\BSA.fasta'
-    test = PeptideSearch(fasta_path, mzml_path)
-    peptides = test.peptide_wrapper()
-    print(peptides[0])
-    print(peptides[1])
