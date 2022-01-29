@@ -69,7 +69,7 @@ def protein_info(fasta: str, mzml: str, peptide: list,  output: str, verbose: bo
         pro_search = ProteinSearch(peptide)
         pro_search.get_proteins()
         ans_with_seq = pro_search.ans_df
-        ans_without_seq = pro_search.ans_df.drop('Sequence', axis=1, inplace=True)
+        ans_without_seq = pro_search.ans_df.drop('Sequence', axis=1)
 
     if verbose:
         if info is not None:
