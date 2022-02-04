@@ -5,9 +5,9 @@ import xml.dom.minidom
 import argparse
 
 
-test1 = Reader('C:/Users/laras/PycharmProjects/group_3/package/tests/data/BSA1.mzML')
-test2 = Reader('C:/Users/laras/PycharmProjects/group_3/package/tests/data/7MIX_STD_110802_1.mzXML')
-test3 = Reader('C:/Users/laras/PycharmProjects/group_3/package/tests/data/BSA.fasta')
+test1 = Reader('../tests/data/BSA1.mzML')
+test2 = Reader('../tests/data/7MIX_STD_110802_1.mzXML')
+test3 = Reader('../tests/data/BSA.fasta')
 
 
 class TestReader:
