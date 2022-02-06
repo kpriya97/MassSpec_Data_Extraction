@@ -24,7 +24,7 @@ using the values derived from such a spectrum, one can determine with a high deg
 peptide) is.
 
 ![image](https://upload.wikimedia.org/wikipedia/commons/1/1f/Mass_spectrometry_protocol.png)
-
+*https://upload.wikimedia.org/wikipedia/commons/1/1f/Mass_spectrometry_protocol.png*
 ## Repository skeleton
 
 --------------
@@ -36,8 +36,8 @@ peptide) is.
     └── template.html
     └── upload.html
   └── run.py
-├── package
-│ └── protein_spectra_package
+├── mass_spectrum
+│ └── ms_package
     └── __init__.py
     └── cli.py
     └── peptide_prediction.py
@@ -47,6 +47,7 @@ peptide) is.
   └── tests
     └── data
     └── __init__.py
+    └── constants.py
     └── test_peptide_prediction.py
     └── test_protein_prediction.py
     └── test_reader.py
@@ -54,6 +55,7 @@ peptide) is.
 ├── Dockerfile
 ├── README.md
 ├── docker-compose.yml
+├── Group03_contributions.pdf
 ├── project4_spectra.pdf
  
 ```
@@ -62,7 +64,7 @@ peptide) is.
 
 ---
 
-protein_spectra_package includes python scripts and tests to perform following tasks:
+ms_package includes python scripts and tests to perform following tasks:
 1. **Parse raw MS files** for their m/z values using */reader.py*
 2. **Predict which peptides** using */peptide_prediction.py*
 3. **Determine the proteins** that the predicted peptides could be derived from using */protein_prediction.py*
@@ -97,9 +99,9 @@ protein_spectra_package includes python scripts and tests to perform following t
 pip install numpy
 pip install pyopenms
 ```
-- To install protein_spectra_package from command line, navigate to folder package and execute:
+- To install the package from command line, navigate to the folder package and execute:
 ```bash
-pip install ms_package
+pip install mass_spectrum
 ```
 - Docker
 ```bash
@@ -113,19 +115,22 @@ pip install ms_package
 ```python
 - import ms_package
 
-    - ms_package get_spectrum_values /tests/data/BSA1.mzML
+    - ms_package get-spectrum-values /tests/data/BSA1.mzML -v
 
-    - ms_package peptide_info /tests/data/BSA.fasta /tests/data/BSA1.mzML
+    - ms_package peptide-info /tests/data/BSA.fasta /tests/data/BSA1.mzML -v
 
-    - ms_package protein_info -f /tests/data/BSA.fasta -m /tests/data/BSA1.mzML
+    - ms_package protein-info -f /tests/data/BSA.fasta -m /tests/data/BSA1.mzML -v
 
 ```
 
 ```python
 - to test dockerfile, navigate to the folder with the Dockerfile and execute :
     
-    $ docker build . -t ms:latest $ docker run --name ms_test -p 5000:5000 -d plab2:latest
+    - $ docker build . -t ms:latest 
+    - $ docker run --name ms_test -p 5000:5000 -d ms:latest
 
+- to have Docker build the container execute the following command line from the directory with the docker-compose.yml file:
+    - $ docker-compose up -d
 ```
 ## License
 

@@ -4,10 +4,10 @@ from typing import Tuple
 from werkzeug.utils import secure_filename
 from flask import Flask, flash, request, redirect, url_for, render_template, session
 
-from mass_spectrum.ms_package.startup import DATA_DIR
-from mass_spectrum.ms_package.reader import Reader
-from mass_spectrum.ms_package.peptide_prediction import PeptideSearch
-from mass_spectrum.ms_package.protein_prediction import ProteinSearch
+from ms_package.startup import DATA_DIR
+from ms_package.reader import Reader
+from ms_package.peptide_prediction import PeptideSearch
+from ms_package.protein_prediction import ProteinSearch
 
 
 UPLOAD_FOLDER = os.path.join(DATA_DIR, 'uploads')

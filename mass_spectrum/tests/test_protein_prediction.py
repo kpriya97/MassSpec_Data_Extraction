@@ -6,9 +6,9 @@ import json
 import pandas as pd
 import pytest
 
-from mass_spectrum.ms_package.startup import DATA_DIR
-from mass_spectrum.ms_package.protein_prediction import ProteinSearch
-from mass_spectrum.ms_package.peptide_prediction import PeptideSearch
+from ms_package.startup import DATA_DIR
+from ms_package.protein_prediction import ProteinSearch
+from ms_package.peptide_prediction import PeptideSearch
 from .constants import TEST_FASTA_FILE, TEST_MZML_FILE
 
 # Test peptide list from test file

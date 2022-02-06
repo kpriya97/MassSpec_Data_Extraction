@@ -1,8 +1,8 @@
 import click
-import mass_spectrum.ms_package.startup
-from mass_spectrum.ms_package.reader import Reader
-from mass_spectrum.ms_package.peptide_prediction import PeptideSearch
-from mass_spectrum.ms_package.protein_prediction import ProteinSearch
+import ms_package.startup
+from ms_package.reader import Reader
+from ms_package.peptide_prediction import PeptideSearch
+from ms_package.protein_prediction import ProteinSearch
 import logging
 
 logger = logging.getLogger(__name__)

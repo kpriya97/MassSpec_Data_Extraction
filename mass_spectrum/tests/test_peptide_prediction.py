@@ -2,7 +2,7 @@
 
 
 from .constants import TEST_FASTA_FILE, TEST_MZML_FILE
-from mass_spectrum.ms_package.peptide_prediction import PeptideSearch
+from ms_package.peptide_prediction import PeptideSearch
 import pytest
 import pandas as pd
 

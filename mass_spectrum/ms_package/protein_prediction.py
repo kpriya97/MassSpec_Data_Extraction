@@ -8,7 +8,7 @@ import json
 import pandas as pd
 from collections import defaultdict
 
-from mass_spectrum.ms_package.startup import DATA_DIR
+from ms_package.startup import DATA_DIR
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)

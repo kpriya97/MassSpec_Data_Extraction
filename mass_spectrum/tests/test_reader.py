@@ -2,7 +2,7 @@
 
 import pytest
 import pandas as pd
-from mass_spectrum.ms_package.reader import Reader
+from ms_package.reader import Reader
 import xml.dom.minidom
 import argparse
 from .constants import TEST_FASTA_FILE, TEST_MZML_FILE, TEST_MZXML_FILE
