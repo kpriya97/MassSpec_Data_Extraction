@@ -8,7 +8,7 @@ import json
 import pandas as pd
 from collections import defaultdict
 
-from protein_spectra_package.startup import DATA_DIR
+from package.protein_spectra_package.startup import DATA_DIR
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
