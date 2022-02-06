@@ -17,7 +17,6 @@
 
 --------------
 
-
 Mass spectrometry is used extensively in the biochemical field for calculating the molecular weight of isolated
 proteins as well as identifying possible modifications made to the protein itself (post-translational modifications). MS works by
 generating a spectrum (known as a mass spectrum) which plots the mass-to-charge ratio (m/z) of the ions in the sample. By
@@ -61,7 +60,7 @@ peptide) is.
 
 ## Description about the package
 
---------------
+---
 
 protein_spectra_package includes python scripts and tests to perform following tasks:
 1. **Parse raw MS files** for their m/z values using */reader.py*
@@ -139,7 +138,7 @@ pip install ms_package
     $ docker build . -t ms:latest $ docker run --name ms_test -p 5000:5000 -d plab2:latest
 
 ```
-### License
+## License
 
 -------
 
