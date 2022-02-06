@@ -122,17 +122,6 @@ pip install ms_package
 ```
 
 ```python
-- using cli
-
-    - python cli get_spectrum_values /tests/data/BSA1.mzML
-
-    - python cli peptide_info /tests/data/BSA.fasta /tests/data/BSA1.mzML
-    
-    - python cli protein_info -f /tests/data/BSA.fasta -m /tests/data/BSA1.mzML
-
-```
-
-```python
 - to test dockerfile, navigate to the folder with the Dockerfile and execute :
     
     $ docker build . -t ms:latest $ docker run --name ms_test -p 5000:5000 -d plab2:latest
