@@ -15,6 +15,9 @@ logger.setLevel(logging.DEBUG)
 
 
 class ProteinSearch:
+    """This class uses The Proteins API from EBI to map the list of peptides
+    given
+    """
 
     def __init__(self, peptide_list: list):
         self.peptide_list = peptide_list
@@ -25,10 +28,6 @@ class ProteinSearch:
 
     def filter_peptides(self):
         """Filters peptide sequence if it contains special characters
-        Parameters
-        ----------
-        peptide_list: List of peptide sequences
-
         """
         filtered_pep_list = [pep for pep in self.peptide_list if "(" not in pep and ")" not in pep]
         return filtered_pep_list
@@ -162,7 +161,7 @@ class ProteinSearch:
             self.ans_df = pd.concat([exists_df, response_df],  axis=0, ignore_index=True)
             response_df.to_csv(pep_list_dir, mode="a", header=False, index=False)
 
-        # Full API
+        # full API
         elif response_df is not None and exists_df is None:
             self.ans_df = response_df
             try:
@@ -170,7 +169,7 @@ class ProteinSearch:
             except KeyError:
                 self.ans_df.to_csv(pep_list_dir, mode="a", header=False, index=False)
 
-        # Full Exists
+        # full exists
         elif response_df is None and exists_df is not None:
             self.ans_df = exists_df
         else:
