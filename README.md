@@ -13,7 +13,7 @@
 - Rohitha Ravinder 
 - Shubhi Ambast
 
-### Introduction 
+## Introduction 
 
 --------------
 
@@ -26,7 +26,7 @@ peptide) is.
 
 ![image](https://upload.wikimedia.org/wikipedia/commons/1/1f/Mass_spectrometry_protocol.png)
 
-### protein_spectra_package location in repository
+## protein_spectra_package location in repository
 
 --------------
 ```
@@ -47,7 +47,7 @@ peptide) is.
   └── setup.py
 ```
 
-### Description about the package
+## Description about the package
 
 --------------
 
@@ -64,7 +64,7 @@ protein_spectra_package includes python scripts and tests to perform following t
 - [EMBL-EBI Proteins API](https://www.ebi.ac.uk/proteins/api/doc/#/proteomics) is used to make API query which searches in the databases like MaxQB, PeptideAtlas, EPD and  ProteomicsDB and saves the output in json format.
   - Base url API for the task used here: "https://www.ebi.ac.uk/proteins/api/proteomics?offset=0&size=100&peptide={api_query}" ; api_query = peptide(str)
   
-### References
+## References
 
 -------
 
@@ -73,7 +73,15 @@ protein_spectra_package includes python scripts and tests to perform following t
 - [Detecting protein variants by mass spectrometry: a comprehensive study in cancer cell-lines](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-017-0454-9)
 - [Protein identification and expression analysis using mass spectrometry](https://www.cell.com/trends/microbiology/fulltext/S0966-842X(06)00076-X?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS0966842X0600076X%3Fshowall%3Dtrue)
 
-### Installation
+## Dependencies
+
+--------------
+
+- [Numpy] (https://numpy.org/)
+-[pyOpenMS] (https://pyopenms.readthedocs.io/en/latest/#)
+- [Pandas] (https://pandas.pydata.org/)
+
+## Installation
 
 --------------
 
@@ -87,7 +95,7 @@ pip install pyopenms
 pip install protein_spectra_package
 ```
 
-### Usage
+## Usage
 
 -------
 ```python
