@@ -1,12 +1,13 @@
 import os
+from typing import Tuple
 
 from werkzeug.utils import secure_filename
 from flask import Flask, flash, request, redirect, url_for, render_template, session
 
-from protein_spectra_package.startup import DATA_DIR
-from protein_spectra_package.reader import *
-from protein_spectra_package.peptide_prediction import *
-from protein_spectra_package.protein_prediction import *
+from mass_spectrum.ms_package.startup import DATA_DIR
+from mass_spectrum.ms_package.reader import Reader
+from mass_spectrum.ms_package.peptide_prediction import PeptideSearch
+from mass_spectrum.ms_package.protein_prediction import ProteinSearch
 
 
 UPLOAD_FOLDER = os.path.join(DATA_DIR, 'uploads')
@@ -24,15 +25,14 @@ app.config['MAX_CONTENT_PATH'] = 16 * 1024 * 1024
 def home():
     if request.method == 'POST':  # User choosing file type
         file_type = request.form['file_type']
-        import_check = toggle_file_type(file_type)
-        if session['ms_files']  and session['fasta_file'] is not None:  # Both File(s) imported
+        import_message, import_check = toggle_file_type(file_type)
+        if import_check:  # Both File(s) imported
             rel_vals = get_values(session['ms_files'])
             hits, peptide_hits = get_peptide_hits(session['fasta_file'], session['ms_files'])
             prtns = get_proteins(hits)
-            return render_template('template.html', values=rel_vals, hits=peptide_hits, protein=prtns, import_msg=import_check)
-
+            return render_template('template.html', values=rel_vals, hits=peptide_hits, protein=prtns, import_msg=import_message)
         else:
-            return render_template('template.html', import_msg=import_check)
+            return render_template('template.html', import_msg=import_message)
 
     return render_template('template.html')
 
@@ -83,7 +83,7 @@ def upload_file():
         return redirect(url_for('home'))
 
 
-def toggle_file_type(file_type: str) -> str:
+def toggle_file_type(file_type: str) -> Tuple[str, bool]:
     ext = ".mzML" if file_type == "mzml" else ".mzxml"
     ms_files = [
         os.path.join(app.config['UPLOAD_FOLDER'], f)
@@ -95,31 +95,31 @@ def toggle_file_type(file_type: str) -> str:
         for f in os.listdir(app.config['UPLOAD_FOLDER'])
         if f.endswith(".fasta")
     ]
-    if file_type == "mzml" and len(ms_files) != 1:
-        return "Error importing mzml file. Please clear uploaded contents and upload a single mzml file."
+    if len(ms_files) == 0 and len(fasta_file) == 0:
+        return "No files uploaded. Please upload files.", False
+
+    elif file_type == "mzml" and len(ms_files) != 1:
+        return "Error importing mzml file. Please clear uploaded contents and upload a single mzml file.", False
 
     elif file_type == "mzxml" and len(ms_files) != 1:
-        return "Error importing mzxml file. Please clear uploaded contents and upload a single mzxml file."
+        return "Error importing mzxml file. Please clear uploaded contents and upload a single mzxml file.", False
 
     else:
         session['file_type'] = file_type
         session['ms_files'] = ms_files[0]
         session['fasta_file'] = fasta_file[0]
-        return "File(s) imported successfully!"
+        return "File(s) imported successfully!", True
 
 
 def check_uploads():
     n_files = len(os.listdir(app.config['UPLOAD_FOLDER']))
-    if n_files == 2:
-        return True
-    else:
-        return False
+    return True if n_files == 2 else False
 
 
 def get_values(file):
     relevant_values = Reader(file)
     values = relevant_values.analyse_spectrum()
-    rel_vals = values.to_html(header="true", table_id="table", index=False, justify= "justify-all")
+    rel_vals = values.to_html(header="true", table_id="table", index=False, justify="justify-all")
     return rel_vals
 
 
@@ -141,8 +141,9 @@ def get_proteins(hits):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
-
-
-
+    flask_port = int(os.environ.get('FLASK_PORT'))
+    if flask_port:
+        port = flask_port
+    else:
+        port = 5000
+    app.run(debug=True, host='0.0.0.0', port=port)

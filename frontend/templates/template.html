@@ -22,7 +22,6 @@
         <input type="radio" id="mzxmlt" name="file_type" value="mzxml"> mzXML File <br>
         <p><input type="submit" value="Submit"></p>
     </form>
-    {{success_msg}}
     <br><br>
 </div>
 {{ import_msg }}
@@ -36,7 +35,9 @@
           </h3>
         </div>
         <div id="collapse1" class="panel-collapse collapse">
-          <div class="panel-body">{{values | safe}}</div>
+          <div class="panel-body">
+              {{values | safe }}
+          </div>
             <div class="panel-footer"></div>
         </div>
       </div>
