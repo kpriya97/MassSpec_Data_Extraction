@@ -1,3 +1,5 @@
+"""Creates test class TestReader that performs pytests on the Reader class."""
+
 import pytest
 import pandas as pd
 from package.protein_spectra_package.reader import Reader
