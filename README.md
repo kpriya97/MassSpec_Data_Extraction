@@ -26,10 +26,17 @@ peptide) is.
 
 ![image](https://upload.wikimedia.org/wikipedia/commons/1/1f/Mass_spectrometry_protocol.png)
 
-## protein_spectra_package location in repository
+## Repository skeleton
 
 --------------
 ```
+├── frontend
+│ └── templates
+    └── layout.html
+    └── macros.html
+    └── template.html
+    └── upload.html
+  └── run.py
 ├── package
 │ └── protein_spectra_package
     └── __init__.py
@@ -45,6 +52,11 @@ peptide) is.
     └── test_protein_prediction.py
     └── test_reader.py
   └── setup.py
+├── Dockerfile
+├── README.md
+├── docker-compose.yml
+├── project4_spectra.pdf
+ 
 ```
 
 ## Description about the package
@@ -56,7 +68,7 @@ protein_spectra_package includes python scripts and tests to perform following t
 2. **Predict which peptides** using */peptide_prediction.py*
 3. **Determine the proteins** that the predicted peptides could be derived from using */protein_prediction.py*
 4. **Create a frontend** to upload a raw MS output file and obtain a list of possible peptides
-5. **Containerize the Application** to bundle backend and frontend together
+5. **Containerize the Application** to bundle backend and frontend together using Docker
 
 - [pyOpenMS](https://pyopenms.readthedocs.io/en/latest/) is an open source Python library used in this project for analysis of mass spectrometry raw data(mzXML, mzML, TraML, fasta, pepxml). The package helps in identifying of peptide fragments, isotopic abundances and peptide search.
   - pyOpenMS interacts with other search engines such as Mascot, MSFragger, OMSSA, Sequest, SpectraST, XTandem to identify proteins from peptide sequence databases.
@@ -64,22 +76,18 @@ protein_spectra_package includes python scripts and tests to perform following t
 - [EMBL-EBI Proteins API](https://www.ebi.ac.uk/proteins/api/doc/#/proteomics) is used to make API query which searches in the databases like MaxQB, PeptideAtlas, EPD and  ProteomicsDB and saves the output in json format.
   - Base url API for the task used here: "https://www.ebi.ac.uk/proteins/api/proteomics?offset=0&size=100&peptide={api_query}" ; api_query = peptide(str)
   
-## References
-
--------
-
-- [Accurate peak list extraction from proteomic mass spectra for identification and profiling studies](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-518)
-- [Mascot Server](https://www.matrixscience.com/search_form_select.html)
-- [Detecting protein variants by mass spectrometry: a comprehensive study in cancer cell-lines](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-017-0454-9)
-- [Protein identification and expression analysis using mass spectrometry](https://www.cell.com/trends/microbiology/fulltext/S0966-842X(06)00076-X?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS0966842X0600076X%3Fshowall%3Dtrue)
 
 ## Dependencies
 
 --------------
 
 - [Numpy] (https://numpy.org/)
--[pyOpenMS] (https://pyopenms.readthedocs.io/en/latest/#)
+- [pyOpenMS] (https://pyopenms.readthedocs.io/en/latest/#)
 - [Pandas] (https://pandas.pydata.org/)
+- [Flask] (https://flask.palletsprojects.com/en/2.0.x/)
+- [Click] (https://click.palletsprojects.com/en/8.0.x/)
+- [Requests] (https://docs.python-requests.org/en/latest/)
+
 
 ## Installation
 
@@ -92,21 +100,43 @@ pip install pyopenms
 ```
 - To install protein_spectra_package from command line, navigate to folder package and execute:
 ```bash
-pip install protein_spectra_package
+pip install ms_package
+```
+- Docker
+```bash
+- To install Docker on your machine - (https://docs.docker.com/get-docker/)
+- Install the "Docker" plugin in PyCharm or whatever IDE you are using
 ```
 
 ## Usage
 
 -------
 ```python
-import protein_spectra_package
+- import ms_package
 
-- protein_spectra_package get_spectrum_values /tests/data/BSA1.mzML
+    - ms_package get_spectrum_values /tests/data/BSA1.mzML
 
-- protein_spectra_package peptide_info /tests/data/BSA.fasta /tests/data/BSA1.mzML
+    - ms_package peptide_info /tests/data/BSA.fasta /tests/data/BSA1.mzML
 
-- protein_spectra_package protein_info -f /tests/data/BSA.fasta -m /tests/data/BSA1.mzML
+    - ms_package protein_info -f /tests/data/BSA.fasta -m /tests/data/BSA1.mzML
 
+```
+
+```python
+- using cli
+
+    - python cli get_spectrum_values /tests/data/BSA1.mzML
+
+    - python cli peptide_info /tests/data/BSA.fasta /tests/data/BSA1.mzML
+    
+    - python cli protein_info -f /tests/data/BSA.fasta -m /tests/data/BSA1.mzML
+
+```
+
+```python
+- to test dockerfile, navigate to the folder with the Dockerfile and execute :
+    
+    $ docker build . -t ms:latest $ docker run --name ms_test -p 5000:5000 -d plab2:latest
 
 ```
 ### License
@@ -114,3 +144,12 @@ import protein_spectra_package
 -------
 
 Code released under the [MIT license] (https://choosealicense.com/licenses/mit/).
+
+## References
+
+-------
+
+- [Accurate peak list extraction from proteomic mass spectra for identification and profiling studies](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-11-518)
+- [Mascot Server](https://www.matrixscience.com/search_form_select.html)
+- [Detecting protein variants by mass spectrometry: a comprehensive study in cancer cell-lines](https://genomemedicine.biomedcentral.com/articles/10.1186/s13073-017-0454-9)
+- [Protein identification and expression analysis using mass spectrometry](https://www.cell.com/trends/microbiology/fulltext/S0966-842X(06)00076-X?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS0966842X0600076X%3Fshowall%3Dtrue)
