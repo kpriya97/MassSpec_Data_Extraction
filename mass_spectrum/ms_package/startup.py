@@ -17,16 +17,5 @@ os.makedirs(DATA_DIR, exist_ok=True)
 
 # Logging Configuration
 LOG_FILE_PATH = os.path.join(LOG_DIR, "group3's_log.log")
+logging.basicConfig(filename=LOG_FILE_PATH, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-fh = logging.FileHandler(LOG_FILE_PATH)
-fh.setLevel(logging.DEBUG)
-
-sh = logging.StreamHandler()
-sh.setLevel(logging.DEBUG)
-
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh.setFormatter(formatter)
-sh.setFormatter(formatter)
-
-logger.addHandler(fh)
-logger.addHandler(sh)
