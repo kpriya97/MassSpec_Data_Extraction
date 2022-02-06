@@ -5,11 +5,12 @@ import pandas as pd
 from package.protein_spectra_package.reader import Reader
 import xml.dom.minidom
 import argparse
+from .constants import TEST_FASTA_FILE, TEST_MZML_FILE, TEST_MZXML_FILE
 
 
-test1 = Reader('../tests/data/BSA1.mzML')
-test2 = Reader('../tests/data/7MIX_STD_110802_1.mzXML')
-test3 = Reader('../tests/data/BSA.fasta')
+test1 = Reader(str(TEST_MZML_FILE))
+test2 = Reader(str(TEST_MZXML_FILE))
+test3 = Reader(str(TEST_FASTA_FILE))
 
 
 class TestReader:
